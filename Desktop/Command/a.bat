@@ -1,0 +1,1 @@
+copy/b F:\* D:\temp\*
