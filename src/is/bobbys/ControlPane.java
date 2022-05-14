@@ -5,6 +5,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.io.File;
 import java.io.IOException;
 
 public final class ControlPane extends JFrame {
@@ -37,7 +38,7 @@ public final class ControlPane extends JFrame {
         addIg.addActionListener(e -> desktop.addIgnore());
         openOld.addActionListener(e -> {
             try {
-                Desktop.getDesktop().open(desktop.oldPath);
+                Desktop.getDesktop().open(new File(".fileManager/Old Files"));
             } catch (IOException ex) {
                 ex.printStackTrace();
             }

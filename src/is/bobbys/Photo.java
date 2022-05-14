@@ -6,7 +6,7 @@ import java.util.HashMap;
 import java.util.LinkedList;
 
 public final class Photo implements Serializable {
-    public static long limit = 432000L;
+    public static long limit = 172800000L;
     public static Photo mainPhoto;
     private static DesktopFiles des;
     public static void init(DesktopFiles des){
@@ -24,12 +24,14 @@ public final class Photo implements Serializable {
     }
     public static void takePhoto(){
         mainPhoto.appendPhoto(new Photo(des.listOther()));
+        System.out.println(mainPhoto);
+    }
+    public static void save(){
         try {
             DesktopFiles.write(mainPhoto,".fileManager/Record.obj");
         } catch (IOException e) {
             e.printStackTrace();
         }
-        System.out.println(mainPhoto);
     }
     public final HashMap<String, Time> data;
 
@@ -70,7 +72,7 @@ public final class Photo implements Serializable {
 
     @Override
     public String toString() {
-        return "Photo{data=" + data +
+        return "Photo{" + data +
                 '}';
     }
 
@@ -101,17 +103,15 @@ public final class Photo implements Serializable {
         }
 
         @Override
-        public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
+        public void readExternal(ObjectInput in) throws IOException {
             sys=in.readLong();
             lastMod=in.readLong();
         }
 
         @Override
         public String toString() {
-            return "Time{" +
-                    "sys=" + new Date(sys) +
-                    ", lastMod=" + new Date(lastMod) +
-                    '}';
+            return "sys=" + new Date(sys) +
+                    ", lastMod=" + new Date(lastMod);
         }
     }
 }

@@ -3,6 +3,8 @@ package is.bobbys;
 import javax.swing.*;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import java.io.*;
+import java.nio.file.Files;
+import java.nio.file.StandardCopyOption;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
@@ -10,7 +12,6 @@ public final class DesktopFiles {
     private final HashMap<String, String> path;
     private final HashSet<String> ignores;
     private File desktop;
-    public final File oldPath = new File(".fileManager/Old Files");
 
     public DesktopFiles() {
         HashMap<String, String> p;
@@ -47,7 +48,8 @@ public final class DesktopFiles {
             e.printStackTrace();
         }
 
-        if (!oldPath.exists()) oldPath.mkdir();
+        File f2=new File(".fileManager/Old Files");
+        if (!f2.exists()) f2.mkdir();
     }
 
     public static Object read(String path) throws IOException, ClassNotFoundException {
@@ -107,18 +109,26 @@ public final class DesktopFiles {
     }
 
     public File[] listPPT() {
-        System.out.println("PPT:"+ Arrays.toString(desktop.listFiles((dir, name) -> (name.endsWith(".pptx") || name.endsWith(".ppt")) && !isIgnored(name)&&!dir.isHidden())));
-        return desktop.listFiles(pathname -> (pathname.getName().endsWith(".pptx") || pathname.getName().endsWith(".ppt")) && !isIgnored(pathname.getName())&&!pathname.isHidden());
+        System.out.println("PPT:"+ Arrays.toString(desktop.listFiles(pathname ->
+                (pathname.getName().endsWith(".pptx") || pathname.getName().endsWith(".ppt")) &&
+                        !isIgnored(pathname.getName())&&!pathname.isHidden())));
+        return desktop.listFiles(pathname ->
+                (pathname.getName().endsWith(".pptx") || pathname.getName().endsWith(".ppt")) &&
+                        !isIgnored(pathname.getName())&&!pathname.isHidden());
     }
 
     public File[] listDir() {
-        System.out.println("Dir:"+ Arrays.toString(desktop.listFiles(pathname -> pathname.isDirectory() && !isIgnored(pathname.getName())&&!pathname.isHidden())));
-        return desktop.listFiles(pathname -> pathname.isDirectory() && !isIgnored(pathname.getName())&&!pathname.isHidden());
+        System.out.println("Dir:"+ Arrays.toString(desktop.listFiles(pathname ->
+                pathname.isDirectory() && !isIgnored(pathname.getName())&&!pathname.isHidden())));
+        return desktop.listFiles(pathname ->
+                pathname.isDirectory() && !isIgnored(pathname.getName())&&!pathname.isHidden());
     }
 
     public File[] listOther() {
-        System.out.println("Other:"+ Arrays.toString(desktop.listFiles(pathname -> !(pathname.getName().endsWith(".lnk") || isIgnored(pathname.getName())||pathname.isHidden()))));
-        return desktop.listFiles(pathname -> !(pathname.getName().endsWith(".lnk") || isIgnored(pathname.getName())||pathname.isHidden()));
+        System.out.println("Other:"+ Arrays.toString(desktop.listFiles(pathname ->
+                !(pathname.getName().endsWith(".lnk") || isIgnored(pathname.getName())||pathname.isHidden()))));
+        return desktop.listFiles(pathname ->
+                !(pathname.getName().endsWith(".lnk") || isIgnored(pathname.getName())||pathname.isHidden()));
     }
 
     public void setPath() {
@@ -140,11 +150,8 @@ public final class DesktopFiles {
             e.printStackTrace();
         }
     }
-    private final SimpleDateFormat format=new SimpleDateFormat("MM_dd hh_mm_ss@");
     public synchronized void doClean() {
         System.out.println("开始清理");
-        System.out.println("ignores: "+Arrays.toString(ignores.toArray()));
-        String n;
         File temp, cn, en, his;
 
         int size= ignores.size();
@@ -160,11 +167,12 @@ public final class DesktopFiles {
                 e.printStackTrace();
             }
         }
+        System.out.println("ignores: "+Arrays.toString(ignores.toArray()));
 
         cn = (path.get("语文") == null) ? null : new File(path.get("语文"));
         en = (path.get("英语") == null) ? null : new File(path.get("英语"));
         his = (path.get("历史") == null) ? null : new File(path.get("历史"));
-        String newN;
+        String newN,n;
         for (File f : listPPT()) {
             n = f.getName();
             newN=Names.getContainedN(n);
@@ -196,7 +204,11 @@ public final class DesktopFiles {
             }
         }
         Photo.takePhoto();
-        String date=format.format(new Date());
+        Date d=new Date();
+        String date=new SimpleDateFormat("hh_mm_ss@").format(d);
+        String dir=new SimpleDateFormat("yyyy-MM-dd").format(d);
+        File oldPath=new File(".fileManager/Old Files/"+dir);
+        if (!oldPath.exists()) oldPath.mkdir();
         for (File f : listOther()) {
             if (Photo.mainPhoto.isOld(f)) {
                 try {
@@ -207,10 +219,13 @@ public final class DesktopFiles {
                 }
             }
         }
+
+        Photo.takePhoto();
+        Photo.save();
     }
     public static void move(File src,File tar) throws IOException {
         if (tar.exists()) {
-            move(src,new File(tar.getAbsolutePath() + "(2)"));
+            move(src,new File("(2)"+tar.getAbsolutePath()));
         }else if (src.isDirectory()){
             tar.mkdir();
             for (File f:src.listFiles()){
@@ -219,7 +234,7 @@ public final class DesktopFiles {
             src.delete();
         }else {
             if (src.canWrite()) {
-//                Files.move(src.toPath(), tar.toPath(), StandardCopyOption.REPLACE_EXISTING);
+                Files.move(src.toPath(), tar.toPath(), StandardCopyOption.REPLACE_EXISTING);
                 System.out.println(src.getName() + "【移动到】" + tar.getAbsolutePath());
             }else {
                 System.out.println(src.getName()+"【无法写入】");
