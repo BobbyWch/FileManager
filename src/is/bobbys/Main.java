@@ -3,9 +3,10 @@ package is.bobbys;
 import javax.swing.*;
 import java.io.File;
 import java.io.IOException;
+import java.util.Arrays;
 
 public final class Main {
-    public static void main(String...args) throws UnsupportedLookAndFeelException, ClassNotFoundException, InstantiationException, IllegalAccessException {
+    public static void main(String...args) throws UnsupportedLookAndFeelException, ClassNotFoundException, InstantiationException, IllegalAccessException, IOException {
 //        test();
         UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
         Names.init();
@@ -21,9 +22,7 @@ public final class Main {
             return null;
         }
     }
-    public static void test(){
-        File f=new File("C:\\Users\\Admin\\Desktop\\justsink");
-        System.out.println(!f.getName().endsWith(".lnk") &&!f.isHidden());
+    public static void test() throws IOException {
         System.exit(0);
     }
 }

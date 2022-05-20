@@ -6,7 +6,7 @@ import java.util.HashMap;
 import java.util.LinkedList;
 
 public final class Photo implements Serializable {
-    public static long limit = 172800000L;
+    public static long limit = 86400000L;
     public static Photo mainPhoto;
     private static DesktopFiles des;
     public static void init(DesktopFiles des){

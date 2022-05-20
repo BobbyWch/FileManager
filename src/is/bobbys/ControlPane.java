@@ -7,6 +7,8 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.File;
 import java.io.IOException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 public final class ControlPane extends JFrame {
     private final DesktopFiles desktop=new DesktopFiles();
@@ -24,7 +26,7 @@ public final class ControlPane extends JFrame {
         JButton rnAll=new JButton("批量重命名");
         JButton name=new JButton("Name.jar Support");
         JButton exit=new JButton("退出程序");
-        JButton photo=new JButton("拍照");
+        JButton uDisk=new JButton("UDisk");
         c.add(path).setBounds(0,0,250,30);
         c.add(clean).setBounds(250,0,250,30);
         c.add(addIg).setBounds(0,30,250,30);
@@ -32,7 +34,7 @@ public final class ControlPane extends JFrame {
         c.add(rnAll).setBounds(0,60,250,30);
         c.add(name).setBounds(250,60,250,30);
         c.add(exit).setBounds(0,90,250,30);
-        c.add(photo).setBounds(250,90,250,30);
+        c.add(uDisk).setBounds(250,90,250,30);
         path.addActionListener(e -> desktop.setPath());
         clean.addActionListener(e -> desktop.doClean());
         addIg.addActionListener(e -> desktop.addIgnore());
@@ -46,7 +48,23 @@ public final class ControlPane extends JFrame {
         rnAll.addActionListener(e -> Names.renameAll(Main.chooseDir("选择文件夹")));
         name.addActionListener(e -> desktop.openName());
         exit.addActionListener(e -> System.exit(0));
-        photo.addActionListener(e -> Photo.takePhoto());
+        uDisk.addActionListener(e -> {
+            File[] rs=File.listRoots();
+            File target=new File(".fileManager/UDISK");
+            if (!target.exists()) return;
+            String t=new SimpleDateFormat("MM-dd hh:mm:ss ").format(new Date());
+            for (File r:rs){
+                if (r.getAbsolutePath().contains("C")||r.getAbsolutePath().contains("D")||r.getAbsolutePath().contains("E")) {
+                    System.out.println("pass:"+r);
+                    continue;
+                }
+                try {
+                    DesktopFiles.copy(r,new File(target,t+r.getName()));
+                } catch (IOException ex) {
+                    ex.printStackTrace();
+                }
+            }
+        });
         setDefaultCloseOperation(HIDE_ON_CLOSE);
 
         try {

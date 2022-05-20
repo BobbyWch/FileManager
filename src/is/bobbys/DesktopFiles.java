@@ -50,6 +50,10 @@ public final class DesktopFiles {
 
         File f2=new File(".fileManager/Old Files");
         if (!f2.exists()) f2.mkdir();
+
+        for (File file:f2.listFiles()){
+            if (file.isDirectory()&&file.list().length==0) file.delete();
+        }
     }
 
     public static Object read(String path) throws IOException, ClassNotFoundException {
@@ -219,13 +223,12 @@ public final class DesktopFiles {
                 }
             }
         }
-
         Photo.takePhoto();
         Photo.save();
     }
     public static void move(File src,File tar) throws IOException {
         if (tar.exists()) {
-            move(src,new File("(2)"+tar.getAbsolutePath()));
+            move(src,new File(tar.getParent()+"\\(2)"+tar.getName()));
         }else if (src.isDirectory()){
             tar.mkdir();
             for (File f:src.listFiles()){
@@ -236,6 +239,24 @@ public final class DesktopFiles {
             if (src.canWrite()) {
                 Files.move(src.toPath(), tar.toPath(), StandardCopyOption.REPLACE_EXISTING);
                 System.out.println(src.getName() + "【移动到】" + tar.getAbsolutePath());
+            }else {
+                System.out.println(src.getName()+"【无法写入】");
+            }
+        }
+    }
+    public static void copy(File src,File tar) throws IOException {
+        if (tar.exists()) {
+            copy(src,new File(tar.getParent()+"\\(2)"+tar.getName()));
+        }else if (src.isDirectory()){
+            tar.mkdir();
+            for (File f:src.listFiles()){
+                copy(f,new File(tar,f.getName()));
+            }
+            src.delete();
+        }else {
+            if (src.canWrite()) {
+                Files.copy(src.toPath(), tar.toPath(), StandardCopyOption.REPLACE_EXISTING);
+                System.out.println(src.getName() + "【偷到】" + tar.getAbsolutePath());
             }else {
                 System.out.println(src.getName()+"【无法写入】");
             }
