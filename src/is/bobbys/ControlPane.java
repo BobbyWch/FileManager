@@ -16,7 +16,7 @@ public final class ControlPane extends JFrame {
         super("桌面管理器");
         Photo.init(desktop);
         setResizable(false);
-        setBounds(500,500,500,300);
+        setBounds(500,500,500,250);
         Container c=getContentPane();
         c.setLayout(null);
         JButton path=new JButton("设置环境变量");
@@ -27,6 +27,7 @@ public final class ControlPane extends JFrame {
         JButton name=new JButton("Name.jar Support");
         JButton exit=new JButton("退出程序");
         JButton uDisk=new JButton("UDisk");
+        JButton setTime=new JButton("设置清理时间：1天");
         c.add(path).setBounds(0,0,250,30);
         c.add(clean).setBounds(250,0,250,30);
         c.add(addIg).setBounds(0,30,250,30);
@@ -35,6 +36,7 @@ public final class ControlPane extends JFrame {
         c.add(name).setBounds(250,60,250,30);
         c.add(exit).setBounds(0,90,250,30);
         c.add(uDisk).setBounds(250,90,250,30);
+        c.add(setTime).setBounds(0,120,250,30);
         path.addActionListener(e -> desktop.setPath());
         clean.addActionListener(e -> desktop.doClean());
         addIg.addActionListener(e -> desktop.addIgnore());
@@ -51,7 +53,7 @@ public final class ControlPane extends JFrame {
         uDisk.addActionListener(e -> {
             File[] rs=File.listRoots();
             File target=new File(".fileManager/UDISK");
-            if (!target.exists()) return;
+            if (!target.exists()) target.mkdir();
             String t=new SimpleDateFormat("MM-dd hh:mm:ss ").format(new Date());
             for (File r:rs){
                 if (r.getAbsolutePath().contains("C")||r.getAbsolutePath().contains("D")||r.getAbsolutePath().contains("E")) {
@@ -63,6 +65,17 @@ public final class ControlPane extends JFrame {
                 } catch (IOException ex) {
                     ex.printStackTrace();
                 }
+            }
+        });
+        setTime.addActionListener(e -> {
+            String s=JOptionPane.showInputDialog("输入时间：（天）");
+            if (s==null) return;
+            try {
+                double d=Double.parseDouble(s);
+                if (d<0) return;
+                Photo.limit= (long) (d*86400000);
+                setTime.setText("设置清理时间："+d+"天");
+            }catch (NumberFormatException ignored){
             }
         });
         setDefaultCloseOperation(HIDE_ON_CLOSE);
