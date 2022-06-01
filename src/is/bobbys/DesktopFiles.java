@@ -213,11 +213,13 @@ public final class DesktopFiles {
         String dir=new SimpleDateFormat("yyyy-MM-dd").format(d);
         File oldPath=new File(".fileManager/Old Files/"+dir);
         if (!oldPath.exists()) oldPath.mkdir();
+        
         for (File f : listOther()) {
-            if (Photo.mainPhoto.isOld(f)) {
+            n=f.getName();
+            if (n.contains("演讲")&&!Names.contains(n)&&Photo.mainPhoto.isOld(f)) {
                 try {
-                    move(f, new File(oldPath, date+f.getName()));
-                    System.out.println(f.getName()+"【被清理】");
+                    move(f, new File(oldPath, date+n));
+                    System.out.println(n+"【被清理】");
                 } catch (IOException e) {
                     e.printStackTrace();
                 }

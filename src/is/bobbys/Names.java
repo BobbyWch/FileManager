@@ -30,6 +30,13 @@ public final class Names {
         }
         return name;
     }
+    public static boolean contains(String n){
+        for (String s:set){
+            if (n.contains(s))
+                return true;
+        }
+        return false;
+    }
     public static void renameAll(File file){
         if (file==null) return;
         String s;
