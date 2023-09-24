@@ -9,28 +9,51 @@ import java.text.SimpleDateFormat;
 import java.util.*;
 
 public final class DesktopFiles {
-    private final HashMap<String, String> path;
+    private static final class Matrix implements Serializable{
+        public final String path;
+        public final String matrix;
+
+        public Matrix(String path, String matrix) {
+            this.path = path;
+            this.matrix = matrix;
+        }
+
+        @Override
+        public String toString() {
+            return "Matrix{" +
+                    "path='" + path + '\'' +
+                    ", matrix='" + matrix + '\'' +
+                    '}';
+        }
+    }
+    public final HashMap<String, String> path;
+    private final HashMap<String, Matrix> matrix;
     private final HashSet<String> ignores;
     private File desktop;
 
     public DesktopFiles() {
-        HashMap<String, String> p;
+        HashMap p;
         try {
             p = (HashMap<String, String>) read(".fileManager/path.obj");
         } catch (IOException | ClassNotFoundException io) {
             p = new HashMap<>();
         }
         path = p;
-
+        try {
+            p = (HashMap<String, Matrix>) read(".fileManager/matrix.obj");
+        } catch (IOException | ClassNotFoundException io) {
+            p = new HashMap<>();
+        }
+        matrix=p;
         File f;
-        String s = p.get("桌面");
+        String s = path.get("桌面");
         if (s != null && (f = new File(s)).exists()) {
             desktop = f;
         } else {
             desktop = Main.chooseDir("选择桌面文件夹");
             if (desktop == null)
                 System.exit(0);
-            p.put("桌面", desktop.getAbsolutePath());
+            path.put("桌面", desktop.getAbsolutePath());
         }
 
         HashSet<String> set;
@@ -42,10 +65,13 @@ public final class DesktopFiles {
         ignores = set;
 
         try {
+            File root=new File(".fileManager");
+            if (!root.exists()) root.mkdir();
             write(path, ".fileManager/path.obj");
             write(ignores, ".fileManager/ignore.obj");
+            write(matrix,".fileManager/matrix.obj");
         } catch (IOException e) {
-            e.printStackTrace();
+            Log.err(e);
         }
 
         File f2=new File(".fileManager/Old Files");
@@ -80,20 +106,20 @@ public final class DesktopFiles {
                 try {
                     write(path, ".fileManager/path.obj");
                 } catch (IOException e) {
-                    e.printStackTrace();
+                    Log.err(e);
                 }
             }else return;
         }
         try {
             Runtime.getRuntime().exec("java -jar "+s+" setting path="+new File(s).getParent()+"\\Name.dat");
         } catch (IOException e) {
-            e.printStackTrace();
+            Log.err(e);
         }
     }
 
     public void addIgnore() {
         JFileChooser chooser = new JFileChooser();
-        chooser.setDialogTitle("选择忽略文件(可一次选择多个)");
+        chooser.setDialogTitle("选择忽略文件(支持多选)");
         chooser.setFileSelectionMode(JFileChooser.FILES_AND_DIRECTORIES);
         chooser.setMultiSelectionEnabled(true);
         if (chooser.showOpenDialog(null) == JFileChooser.APPROVE_OPTION) {
@@ -103,7 +129,7 @@ public final class DesktopFiles {
             try {
                 write(ignores, ".fileManager/ignore.obj");
             } catch (IOException e) {
-                e.printStackTrace();
+                Log.err(e);
             }
         }
     }
@@ -112,51 +138,44 @@ public final class DesktopFiles {
         return ignores.contains(name);
     }
 
-    public File[] listPPT() {
-        System.out.println("PPT:"+ Arrays.toString(desktop.listFiles(pathname ->
-                (pathname.getName().endsWith(".pptx") || pathname.getName().endsWith(".ppt")) &&
-                        !isIgnored(pathname.getName())&&!pathname.isHidden())));
-        return desktop.listFiles(pathname ->
-                (pathname.getName().endsWith(".pptx") || pathname.getName().endsWith(".ppt")) &&
-                        !isIgnored(pathname.getName())&&!pathname.isHidden());
-    }
-
-    public File[] listDir() {
-        System.out.println("Dir:"+ Arrays.toString(desktop.listFiles(pathname ->
-                pathname.isDirectory() && !isIgnored(pathname.getName())&&!pathname.isHidden())));
-        return desktop.listFiles(pathname ->
-                pathname.isDirectory() && !isIgnored(pathname.getName())&&!pathname.isHidden());
-    }
-
-    public File[] listOther() {
-        System.out.println("Other:"+ Arrays.toString(desktop.listFiles(pathname ->
-                !(pathname.getName().endsWith(".lnk") || isIgnored(pathname.getName())||pathname.isHidden()))));
-        return desktop.listFiles(pathname ->
+    public File[] listFiles() {
+        File[] result=desktop.listFiles(pathname ->
                 !(pathname.getName().endsWith(".lnk") || isIgnored(pathname.getName())||pathname.isHidden()));
+        return result;
     }
 
     public void setPath() {
-        String a = "桌面, 语文, 英语, 历史, name";
-        String s = JOptionPane.showInputDialog("输入key(Available: " + a + ')');
-        if (s==null) return;
-        if (!a.contains(s)) {
-            JOptionPane.showMessageDialog(null, "无效key！");
-        } else {
-            File f = Main.chooseDir("选择文件夹");
-            if (f == null)
-                return;
-            path.put(s, f.getAbsolutePath());
-            if (s.equals("桌面")) desktop = new File(f.getAbsolutePath());
+        String s = JOptionPane.showInputDialog("输入类别名称/输入桌面重设桌面");
+        if (s == null) return;
+        File f = Main.chooseDir("选择文件夹");
+        if (f == null) {
+            if (!s.equals("桌面")){
+                matrix.remove(s);
+            }
+            return;
         }
-        try {
-            write(path,".fileManager/path.obj");
-        } catch (IOException e) {
-            e.printStackTrace();
+        if (s.equals("桌面")){
+            path.put(s, f.getAbsolutePath());
+            desktop = new File(f.getAbsolutePath());
+            try {
+                write(path, ".fileManager/path.obj");
+            } catch (IOException e) {
+                Log.err(e);
+            }
+        }else {
+            String m = JOptionPane.showInputDialog("输入正则表达式");
+            if (m == null) return;
+            matrix.put(s,new Matrix(f.getAbsolutePath(),m));
+            try {
+                write(matrix, ".fileManager/matrix.obj");
+            } catch (IOException e) {
+                Log.err(e);
+            }
         }
     }
     public synchronized void doClean() {
-        System.out.println("开始清理");
-        File temp, cn, en, his;
+        Log.log("Do clean");
+        File temp;
 
         int size= ignores.size();
         Iterator<String> itr= ignores.iterator();
@@ -168,65 +187,46 @@ public final class DesktopFiles {
             try {
                 write(ignores, ".fileManager/ignore.obj");
             } catch (IOException e) {
-                e.printStackTrace();
+                Log.err(e);
             }
         }
-        System.out.println("ignores: "+Arrays.toString(ignores.toArray()));
-
-        cn = (path.get("语文") == null) ? null : new File(path.get("语文"));
-        en = (path.get("英语") == null) ? null : new File(path.get("英语"));
-        his = (path.get("历史") == null) ? null : new File(path.get("历史"));
-        String newN,n;
-        for (File f : listPPT()) {
-            n = f.getName();
-            newN=Names.getContainedN(n);
-            try {
-                if (n.equals(newN)){
-                    if (n.matches("第\\d{1,2}课.*")) {
-                        move(f, new File(his, n));
-                    }
-                }else {
-                    if (n.contains("语文") && cn != null) {
-                        move(f, new File(cn, newN));
-                    } else if (n.contains("英语") && en != null) {
-                        move(f, new File(en, newN));
-                    }
-                }
-            }catch (IOException e){
-                e.printStackTrace();
-            }
-        }
-
-        for (File f : listDir()) {
-            n = f.getName();
-            if (n.matches("第\\d{1,2}课.*")) {
-                try {
-                    move(f, new File(his, n));
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
-        }
+        Log.log("ignores: "+Arrays.toString(ignores.toArray()));
+        Log.log(matrix.toString());
+        String n;
         Photo.takePhoto();
         Date d=new Date();
         String date=new SimpleDateFormat("hh_mm_ss@").format(d);
         String dir=new SimpleDateFormat("yyyy-MM-dd").format(d);
         File oldPath=new File(".fileManager/Old Files/"+dir);
         if (!oldPath.exists()) oldPath.mkdir();
-        
-        for (File f : listOther()) {
+        Set<String> matrixKey=matrix.keySet();
+        File[] files=listFiles();
+        Log.log("Files:"+Arrays.toString(files));
+        LoopA:
+        for (File f : files) {
             n=f.getName();
-            if (n.contains("演讲")&&!Names.contains(n)&&Photo.mainPhoto.isOld(f)) {
+            for (String mName:matrixKey){
+                if (n.matches(matrix.get(mName).matrix)){
+                    try {
+                        move(f,new File(matrix.get(mName).path,n));
+                    } catch (IOException e) {
+                        Log.err(e);
+                    }
+                    continue LoopA;
+                }
+            }
+            if (Photo.mainPhoto.isOld(f)) {
                 try {
                     move(f, new File(oldPath, date+n));
-                    System.out.println(n+"【被清理】");
+                    Log.log(n+"[cleaned]");
                 } catch (IOException e) {
-                    e.printStackTrace();
+                    Log.err(e);
                 }
             }
         }
         Photo.takePhoto();
         Photo.save();
+        Log.log(Photo.mainPhoto.toString());
     }
     public static void move(File src,File tar) throws IOException {
         if (tar.exists()) {
@@ -240,9 +240,9 @@ public final class DesktopFiles {
         }else {
             if (src.canWrite()) {
                 Files.move(src.toPath(), tar.toPath(), StandardCopyOption.REPLACE_EXISTING);
-                System.out.println(src.getName() + "【移动到】" + tar.getAbsolutePath());
+                Log.log(src.getName() + "[move to]" + tar.getAbsolutePath());
             }else {
-                System.out.println(src.getName()+"【无法写入】");
+                Log.log(src.getName()+"[cant write]");
             }
         }
     }
@@ -258,9 +258,6 @@ public final class DesktopFiles {
         }else {
             if (src.canWrite()) {
                 Files.copy(src.toPath(), tar.toPath(), StandardCopyOption.REPLACE_EXISTING);
-                System.out.println(src.getName() + "【偷到】" + tar.getAbsolutePath());
-            }else {
-                System.out.println(src.getName()+"【无法写入】");
             }
         }
     }

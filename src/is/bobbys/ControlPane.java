@@ -10,6 +10,8 @@ import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
+import static is.bobbys.DesktopFiles.write;
+
 public final class ControlPane extends JFrame {
     private final DesktopFiles desktop=new DesktopFiles();
     public ControlPane() {
@@ -19,15 +21,16 @@ public final class ControlPane extends JFrame {
         setBounds(500,500,500,250);
         Container c=getContentPane();
         c.setLayout(null);
-        JButton path=new JButton("设置环境变量");
+        JButton path=new JButton("添加清理类型");
         JButton clean=new JButton("立即清理(自动忽略*.lnk)");
-        JButton addIg=new JButton("添加忽略文件（不存在的会自动删除）");
+        JButton addIg=new JButton("添加忽略文件");
         JButton openOld=new JButton("打开旧文件文件夹");
         JButton rnAll=new JButton("批量重命名");
         JButton name=new JButton("Name.jar Support");
         JButton exit=new JButton("退出程序");
         JButton uDisk=new JButton("UDisk");
-        JButton setTime=new JButton("设置清理时间：1天");
+        JButton setTime=new JButton("设置清理时间："+Double.parseDouble(desktop.path.get("limit"))/86400000+"天");
+        JButton log=new JButton("日志");
         c.add(path).setBounds(0,0,250,30);
         c.add(clean).setBounds(250,0,250,30);
         c.add(addIg).setBounds(0,30,250,30);
@@ -37,6 +40,7 @@ public final class ControlPane extends JFrame {
         c.add(exit).setBounds(0,90,250,30);
         c.add(uDisk).setBounds(250,90,250,30);
         c.add(setTime).setBounds(0,120,250,30);
+        c.add(log).setBounds(250,120,250,30);
         path.addActionListener(e -> desktop.setPath());
         clean.addActionListener(e -> desktop.doClean());
         addIg.addActionListener(e -> desktop.addIgnore());
@@ -44,10 +48,10 @@ public final class ControlPane extends JFrame {
             try {
                 Desktop.getDesktop().open(new File(".fileManager/Old Files"));
             } catch (IOException ex) {
-                ex.printStackTrace();
+                Log.err(ex);
             }
         });
-        rnAll.addActionListener(e -> Names.renameAll(Main.chooseDir("选择文件夹")));
+        rnAll.addActionListener(e -> JOptionPane.showMessageDialog(null,"该功能已移除！"));
         name.addActionListener(e -> desktop.openName());
         exit.addActionListener(e -> System.exit(0));
         uDisk.addActionListener(e -> {
@@ -57,13 +61,13 @@ public final class ControlPane extends JFrame {
             String t=new SimpleDateFormat("MM-dd hh:mm:ss ").format(new Date());
             for (File r:rs){
                 if (r.getAbsolutePath().contains("C")||r.getAbsolutePath().contains("D")||r.getAbsolutePath().contains("E")) {
-                    System.out.println("pass:"+r);
+                    Log.log("Usb Thief. Default ignore: C, D, E");
                     continue;
                 }
                 try {
                     DesktopFiles.copy(r,new File(target,t+r.getName()));
                 } catch (IOException ex) {
-                    ex.printStackTrace();
+                    Log.err(ex);
                 }
             }
         });
@@ -74,10 +78,17 @@ public final class ControlPane extends JFrame {
                 double d=Double.parseDouble(s);
                 if (d<0) return;
                 Photo.limit= (long) (d*86400000);
+                desktop.path.put("limit", String.valueOf(Photo.limit));
+                try {
+                    write(desktop.path, ".fileManager/path.obj");
+                } catch (IOException e1) {
+                    Log.err(e1);
+                }
                 setTime.setText("设置清理时间："+d+"天");
             }catch (NumberFormatException ignored){
             }
         });
+        log.addActionListener(e -> Log.showFrame());
         setDefaultCloseOperation(HIDE_ON_CLOSE);
 
         try {
@@ -92,7 +103,7 @@ public final class ControlPane extends JFrame {
                 }
             });
         } catch (Exception e) {
-            e.printStackTrace();
+            Log.err(e);
         }
 
         new Thread(()->{
@@ -101,7 +112,7 @@ public final class ControlPane extends JFrame {
                 try {
                     Thread.sleep(3600000);
                 } catch (InterruptedException e) {
-                    e.printStackTrace();
+                    Log.err(e);
                 }
             }
         }).start();

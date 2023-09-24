@@ -3,13 +3,12 @@ package is.bobbys;
 import javax.swing.*;
 import java.io.File;
 import java.io.IOException;
-import java.util.Arrays;
 
 public final class Main {
     public static void main(String...args) throws UnsupportedLookAndFeelException, ClassNotFoundException, InstantiationException, IllegalAccessException, IOException {
 //        test();
         UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
-        Names.init();
+//        Names.init();
         new ControlPane();
     }
     public static File chooseDir(String title){

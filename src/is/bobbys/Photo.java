@@ -14,23 +14,28 @@ public final class Photo implements Serializable {
         try {
             mainPhoto= ((Photo) DesktopFiles.read(".fileManager/Record.obj"));
         } catch (Exception e) {
-            mainPhoto=new Photo(des.listOther());
+            mainPhoto=new Photo(des.listFiles());
         }
         try {
             DesktopFiles.write(mainPhoto,".fileManager/Record.obj");
         } catch (IOException e) {
-            e.printStackTrace();
+            Log.err(e);
         }
+        try {
+            limit= Long.parseLong(des.path.get("limit"));
+        }catch (Exception e){
+            limit=86400000L;
+        }
+
     }
     public static void takePhoto(){
-        mainPhoto.appendPhoto(new Photo(des.listOther()));
-        System.out.println(mainPhoto);
+        mainPhoto.appendPhoto(new Photo(des.listFiles()));
     }
     public static void save(){
         try {
             DesktopFiles.write(mainPhoto,".fileManager/Record.obj");
         } catch (IOException e) {
-            e.printStackTrace();
+            Log.err(e);
         }
     }
     public final HashMap<String, Time> data;
