@@ -28,8 +28,9 @@ public final class ControlPane extends JFrame {
         JButton rnAll=new JButton("批量重命名");
         JButton name=new JButton("Name.jar Support");
         JButton exit=new JButton("退出程序");
+        exit.setForeground(Color.red);
         JButton uDisk=new JButton("UDisk");
-        JButton setTime=new JButton("设置清理时间："+Double.parseDouble(desktop.path.get("limit"))/86400000+"天");
+        JButton setTime=new JButton("设置清理时间："+getDay()+"天");
         JButton log=new JButton("日志");
         c.add(path).setBounds(0,0,250,30);
         c.add(clean).setBounds(250,0,250,30);
@@ -116,5 +117,10 @@ public final class ControlPane extends JFrame {
                 }
             }
         }).start();
+    }
+    private double getDay(){
+        String s=desktop.path.get("limit");
+        if (s==null) return 1;
+        else return (double) Math.round(Double.parseDouble(s)/864000)/100;
     }
 }

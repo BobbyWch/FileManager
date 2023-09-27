@@ -5,7 +5,7 @@ import java.io.File;
 import java.io.IOException;
 
 public final class Main {
-    public static void main(String...args) throws UnsupportedLookAndFeelException, ClassNotFoundException, InstantiationException, IllegalAccessException, IOException {
+    public static void main(String...args) throws UnsupportedLookAndFeelException, ClassNotFoundException, InstantiationException, IllegalAccessException {
 //        test();
         UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
 //        Names.init();
